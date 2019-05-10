@@ -1,34 +1,71 @@
-const unsigned int updateInterval = 1000; //1 sec
-const unsigned int interval = 5000; //calculated interval 5s
 
+#define updateInterval 1000
+
+const unsigned int intervals[4] ={5000, 10000, 30000, 60000}; //60 sec is max
+int interval = 0;
+
+unsigned long time = 0;
+int count = 0; // quantums per one updated interval
+unsigned long totalCount = 0; // total quantums
+unsigned long counter[60];
 float freq = 0;
-float allTimeFreq = 0;
+float averageFreq = 0;
 
-unsigned long count = 0;
-unsigned long prevCount = 0;
-boolean state = false;
+boolean signalFlag = false; //flag for signal
+boolean btnFlag = false; //flag for set interval button
 
 void setup()
 {
 	Serial.begin(9600);
 	pinMode(2, INPUT_PULLUP);
+    pinMode(3, INPUT_PULLUP);
 }
 
+void setInterval()
+{
+    interval++;
+    if(interval = sizeof(intervals) - 1){
+        interval = 0;
+    } else {
+        interval++;
+    }
+}
+
+int t = 0; //updatedInterval index in whole calculated interval
+void tick()
+{
+    counter[t] = count;
+    totalCount += count;
+    count = 0; //reset for new interval
+    t++;
+    if(t == 5) t = 0;
+    int inInterval = 0; //quantums in whole one calculated interval
+    for(int i=0; i < 5; i++){
+        inInterval += counter[i];
+    }
+    freq = inInterval*60000/intervals[interval];
+    averageFreq = totalCount*60000/time;
+}
+
+int tickTimeFlag = 0;
 void loop()
 {
-	boolean currentState = digitalRead(2);
-	if(currentState && currentState != state){
+    time = millis();
+
+    boolean btnValue = digitalRead(3);
+	if(btnValue && btnValue != btnFlag){
+        setInterval();
+	}
+	btnFlag = btnValue;
+
+	boolean signalValue = digitalRead(2);
+	if(signalValue && signalValue != signalFlag){
         count++;
 	}
-	state = currentState;
-	
-	//reset on interval
-	unsigned long time = millis();
-	if(time%updateInterval == 0){
-        allTimeFreq = count*60000/(time+1);
-        if(time > interval){
-            freq = (count - prevCount)*60000/interval;
-        }
-        prevCount = count;
+	signalFlag = signalValue;
+
+	if(time >= updateInterval && time%updateInterval == 0 && tickTimeFlag != time){
+        tick();
+        tickTimeFlag = time;
 	}
 }
