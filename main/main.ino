@@ -16,14 +16,14 @@ Co60 - 22 имп.с/ мр/ч ----  1320 имп.мин / мр/ч
 #define SCREEN_HEIGHT 32
 #define OLED_RESET 4
 #define L_LED 13 //L-led pin
-#define UPDATE_INTERVAL 5000 //interval for update display
+#define UPDATE_INTERVAL 2000 //interval for update display
 #define BTN_INTERVAL_PIN 3 //digital pin 3 for button
 #define ANALOG_SIGNAL_PIN 3 //signal input pin
-#define SIGNAL_TRESHOLD 10
+#define SIGNAL_TRESHOLD 10 // ~50mV
 #define SBM20_NORM 0.7 // SBM-20 uH/h / quantums
 
 //dosimetr variables
-const unsigned int intervals[4] = { 10000, 30000, 60000, 12000 }; //60 sec is max
+const unsigned int intervals[4] = { 10000, 30000, 60000, 120000 }; //60 sec is max
 const unsigned int intervalsCount = 4;
 int interval = 0; //interval index
 
@@ -91,10 +91,17 @@ void displayData()
 {
     display.clearDisplay();
 
+	//top line 1
     display.setTextSize(1);
     display.setCursor(0, 0);
     display.println(utf8rus(String(intervals[interval] / 1000) + "с"));
 
+	//top line 2
+	display.setTextSize(1);
+    display.setCursor(40, 0);
+    display.println(utf8rus(String(inInterval) + " имп"));
+
+	//main line
     display.setTextSize(2);
     display.setCursor(0, 12);
 
@@ -106,10 +113,6 @@ void displayData()
 		mainText = String(dose) + " мкР/ч";
 	}
     display.println(utf8rus(mainText));
-
-    display.setTextSize(1);
-    display.setCursor(40, 0);
-    display.println(utf8rus(String(inInterval) + " имп"));
 
     display.display();
 }
@@ -173,7 +176,7 @@ void loop()
 
     int analogValue = analogRead(ANALOG_SIGNAL_PIN);
     boolean signalValue = analogValue > SIGNAL_TRESHOLD;
-	
+
     if (signalValue) {
         digitalWrite(L_LED, HIGH);
 		if(signalValue != signalFlag)
