@@ -117,20 +117,7 @@ void displayData()
     display.display();
 }
 
-void setup()
-{
-    Serial.begin(9600);
-    display.cp437(true);
-    display.setTextColor(WHITE);
-    pinMode(L_LED, OUTPUT);
-    pinMode(BTN_INTERVAL_PIN, INPUT_PULLUP);
 
-    // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-        Serial.println(F("SSD1306 allocation failed"));
-        for (;;); // Don't proceed, loop forever
-    }
-}
 
 void changeInterval()
 {
@@ -162,6 +149,22 @@ void tick()
     freq = inInterval * 60000 / intervals[interval];
     averageFreq = totalCount * 60000 / time;
     displayData();
+}
+
+
+void setup()
+{
+    Serial.begin(9600);
+    display.cp437(true);
+    display.setTextColor(WHITE);
+    pinMode(L_LED, OUTPUT);
+    pinMode(BTN_INTERVAL_PIN, INPUT_PULLUP);
+
+    // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+        Serial.println(F("SSD1306 allocation failed"));
+        for (;;); // Don't proceed, loop forever
+    }
 }
 
 int tickTimeFlag = 0;
